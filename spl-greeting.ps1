@@ -45,6 +45,7 @@ function get-items($id) {
         % {if($_ -match "<FONT Size=-1>([\d:]+)-([\d:]+)<BR>(.+?)</FONT>"){$Matches}} |
         % {
             New-Object PSObject -Property @{
+                CID = $id;
                 Name = $name;
                 Start = $date.Add([TimeSpan]::Parse($_[1]));
                 End = $date.Add([TimeSpan]::Parse($_[2]));
