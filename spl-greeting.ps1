@@ -1,4 +1,4 @@
-$baseUri = "http://puroland.jp/chara_gre/"
+﻿$baseUri = "http://puroland.jp/chara_gre/"
 $listUriTemplate = "http://puroland.jp/chara_gre/chara_sentaku.asp?tchk={0}"
 $detailUriTemplate = "http://puroland.jp/chara_gre/chara_sche.asp?tchk={0}&C_KEY={1}"
 # User-Agent には携帯っぽい文字列を含んでおく必要あり
