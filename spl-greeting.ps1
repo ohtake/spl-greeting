@@ -1,6 +1,6 @@
 ﻿$baseUri = "http://puroland.jp/chara_gre/"
-$listUriTemplate = "http://puroland.jp/chara_gre/chara_sentaku.asp?tchk={0}"
-$detailUriTemplate = "http://puroland.jp/chara_gre/chara_sche.asp?tchk={0}&C_KEY={1}"
+$listUriTemplate = $baseUri + "chara_sentaku.asp?tchk={0}"
+$detailUriTemplate = $baseUri + "chara_sche.asp?tchk={0}&C_KEY={1}"
 # User-Agent には携帯っぽい文字列を含んでおく必要あり
 $userAgent = "Mozilla/5.0 (PowerShell; https://github.com/ohtake/spl-greeting) (Android)"
 
@@ -34,11 +34,11 @@ function get-items($id) {
     $body -split "</P>" |
         % {if($_ -match "<FONT Size=-1>([\d:]+)-([\d:]+)<BR>(.+?)</FONT>"){$Matches}} |
         % {
-            New-Object PSObject |
-                Add-Member NoteProperty Name $name -PassThru |
-                Add-Member NoteProperty Start $date.Add([TimeSpan]::Parse($_[1])) -PassThru |
-                Add-Member NoteProperty End $date.Add([TimeSpan]::Parse($_[2])) -PassThru |
-                Add-Member NoteProperty Location $_[3] -PassThru
+            New-Object PSObject -Property @{
+                Name = $name;
+                Start = $date.Add([TimeSpan]::Parse($_[1]));
+                End = $date.Add([TimeSpan]::Parse($_[2]));
+                Location = $_[3]}
         }
 }
 
