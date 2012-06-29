@@ -3,9 +3,11 @@ $listUriTemplate = $baseUri + "chara_sentaku.asp?tchk={0}"
 $detailUriTemplate = $baseUri + "chara_sche.asp?tchk={0}&C_KEY={1}"
 # User-Agent には携帯っぽい文字列を含んでおく必要あり
 $userAgent = "Mozilla/5.0 (PowerShell; https://github.com/ohtake/spl-greeting) (Android)"
+$encoding = [Text.Encoding]::GetEncoding("Shift_JIS")
 
 function wget([String]$uri) {
     $wc = New-Object Net.WebClient
+    $wc.Encoding = $encoding
     $wc.Headers.Add([Net.HttpRequestHeader]::UserAgent, $userAgent)
     $wc.DownloadString($uri)
 }
