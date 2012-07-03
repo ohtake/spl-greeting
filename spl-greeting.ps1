@@ -10,25 +10,35 @@ function wget([String]$uri) {
     $wc.DownloadString($uri)
 }
 function get-tchk() {
-    if((wget($baseUri)) -match 'name="TCHK" value="(\d+)"'){
+    $body = wget($baseUri)
+    if($body -match 'name="TCHK" value="(\d+)"'){
         $Matches[1]
     }else{
+        Write-Verbose $body -Verbose
         throw "Cannot find tchk"
     }
 }
 function get-ids() {
-    (wget($listUriTemplate -f $tchk)) -split "<BR>" |% {if ($_ -match "C_KEY=(\d+)") {$Matches[1]}}
+    $body = wget($listUriTemplate -f $tchk)
+    $ids = @($body -split "<BR>" |% {if ($_ -match "C_KEY=(\d+)") {$Matches[1]}})
+    if($ids.Count -eq 0) {
+        Write-Verbose $body -Verbose
+        throw "Cannot find any CIDs"
+    }
+    $ids
 }
 function get-items($id) {
     $body = wget($detailUriTemplate -f $tchk,$id)
     if($body -match '(\d+)年(\d+)月(\d+)日') {
         $date = New-Object DateTime @([int]$Matches[1],[int]$Matches[2],[int]$Matches[3])
     }else{
+        Write-Verbose $body -Verbose
         throw "Cannot find date"
     }
     if($body -match "<P align=center><FONT size=-1>(.+)</FONT></P>"){
         $name = $Matches[1]
     }else{
+        Write-Verbose $body -Verbose
         throw "Cannot find name"
     }
     $body -split "</P>" |
@@ -42,8 +52,21 @@ function get-items($id) {
         }
 }
 
+Write-Progress "Fetching TCHK" "Fetching" -PercentComplete 0
 $tchk = get-tchk
+Write-Progress "Fetching TCHK" ("TCHK = {0}" -f $tchk) -PercentComplete 100
+Write-Progress "Fetching IDs" "Fetching" -PercentComplete 0
 $ids = get-ids
-$items = $ids |% {get-items($_)}
+Write-Progress "Fetching IDs" ("# of IDs: {0}" -f $ids.Count) -PercentComplete 100
+$items = $ids |
+    % -Begin {
+        $i = 0
+        $count = $ids.Length
+    } -Process {
+        Write-Progress "Fetching schedules" ("Character ID: {0}" -f $_) -PercentComplete (100 * $i++ / $count)
+        get-items($_)
+    } -End {
+        Write-Progress "Fetching schedules" ("# of items: {0}" -f $_.Count) -PercentComplete 100
+    }
 
 # $items | group start,end,location | sort name | select name,{$_.Group|%{$_.Name}} | ft -Wrap
