@@ -12,7 +12,7 @@ function wget([String]$uri) {
 function get-tchk() {
     $body = wget($baseUri)
     if($body -match 'name="TCHK" value="(\d+)"'){
-        $Matches[1]
+        [int]$Matches[1]
     }else{
         Write-Verbose $body -Verbose
         throw "Cannot find tchk"
@@ -20,7 +20,7 @@ function get-tchk() {
 }
 function get-ids() {
     $body = wget($listUriTemplate -f $tchk)
-    $ids = @($body -split "<BR>" |% {if ($_ -match "C_KEY=(\d+)") {$Matches[1]}})
+    $ids = @($body -split "<BR>" |% {if ($_ -match "C_KEY=(\d+)") {[int]$Matches[1]}})
     if($ids.Count -eq 0) {
         Write-Verbose $body -Verbose
         throw "Cannot find any CIDs"
