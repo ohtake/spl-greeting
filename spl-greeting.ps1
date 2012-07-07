@@ -72,4 +72,5 @@ $items = $ids |
         Write-Progress "Fetching schedules" ("# of items: {0}" -f $_.Count) -PercentComplete 100
     }
 
-# $items | group start,end,location | sort name | select name,{@($_.Group|%{$_.Name}) -join ", "} | ft -Wrap
+# $items | group Start,End,Location | sort Name | select Name,{@($_.Group|%{$_.Name}) -join ", "} | ft -Wrap
+# $items | Export-Csv ("{0:yyyyMMdd}.csv" -f (Get-Date)) -Encoding UTF8
