@@ -73,4 +73,4 @@ $items = $ids |
     }
 
 # $items | group Start,End,Location | sort Name | select Name,{@($_.Group|%{$_.Name}) -join ", "} | ft -Wrap
-# $items | Export-Csv ("{0:yyyyMMdd}.csv" -f (Get-Date)) -Encoding UTF8
+# $items | Export-Csv ("{0:yyyyMMdd}.csv" -f [TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([DateTime]::UtcNow, "Tokyo Standard Time")) -Encoding UTF8
