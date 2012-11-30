@@ -77,7 +77,14 @@
 
 function Invoke-SplGreetingMain() {
 	$items = Fetch-SplGreeting
-	$items | group Start,End,Location | sort Name | select Name,{@($_.Group|%{$_.Name}) -join ", "} | ft -Wrap
+	$items |% {
+		$readable = ([DateTime]$_.Start).ToString("HH:mm")
+		$readable += "-"
+		$readable += ([DateTime]$_.End).ToString("HH:mm")
+		$readable += " "
+		$readable += $_.Location -replace "\(.+\)",""
+		$_ | Add-Member -MemberType NoteProperty "FriendlyTimeAndLocation" $readable -PassThru -Force
+	} | group FriendlyTimeAndLocation | sort Name | select Name,{@($_.Group|%{$_.Name}) -join ", "} | ft -AutoSize -Wrap
 	$items | Export-Csv ("{0:yyyyMMdd}.csv" -f [TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([DateTime]::UtcNow, "Tokyo Standard Time")) -Encoding UTF8
 }
 
