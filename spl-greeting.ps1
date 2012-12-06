@@ -5,12 +5,22 @@
 	# User-Agent には携帯っぽい文字列を含んでおく必要あり
 	$userAgent = "Mozilla/5.0 (PowerShell; https://github.com/ohtake/spl-greeting) (Android)"
 	$encoding = [Text.Encoding]::GetEncoding("Shift_JIS")
+	$maxTry = 5
 
 	function wget([String]$uri) {
 		$wc = New-Object Net.WebClient
-		$wc.Encoding = $encoding
-		$wc.Headers.Add([Net.HttpRequestHeader]::UserAgent, $userAgent)
-		$wc.DownloadString($uri)
+
+		for($try=1; $try -le $maxTry; $try++) {
+			try {
+				$wc.Encoding = $encoding
+				$wc.Headers.Add([Net.HttpRequestHeader]::UserAgent, $userAgent)
+				return $wc.DownloadString($uri)
+			} catch {
+				Write-Warning $_.Exception
+				continue
+			}
+		}
+		throw ("Failed to retrieve {0}" -f $uri)
 	}
 	function get-tchk() {
 		$body = wget($baseUri)
