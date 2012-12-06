@@ -87,6 +87,7 @@
 
 function Invoke-SplGreetingMain() {
 	$items = Fetch-SplGreeting
+	$items | Export-Csv ("{0:yyyyMMdd}.csv" -f [TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([DateTime]::UtcNow, "Tokyo Standard Time")) -Encoding UTF8
 	$items |% {
 		$readable = ([DateTime]$_.Start).ToString("HH:mm")
 		$readable += "-"
@@ -95,7 +96,6 @@ function Invoke-SplGreetingMain() {
 		$readable += $_.Location -replace "\(.+\)",""
 		$_ | Add-Member -MemberType NoteProperty "FriendlyTimeAndLocation" $readable -PassThru -Force
 	} | group FriendlyTimeAndLocation | sort Name | select Name,{@($_.Group|%{$_.Name}) -join ", "} | ft -AutoSize -Wrap
-	$items | Export-Csv ("{0:yyyyMMdd}.csv" -f [TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([DateTime]::UtcNow, "Tokyo Standard Time")) -Encoding UTF8
 }
 
 function Combine-SplGreetingCsv() {
