@@ -23,7 +23,7 @@
 		throw ("Failed to retrieve {0}" -f $uri)
 	}
 	function get-tchk() {
-		$body = wget($baseUri)
+		$body = wget($baseUri + "?para=20130627")
 		if($body -match 'name="TCHK" value="(\d+)"'){
 			[int]$Matches[1]
 		}else{
