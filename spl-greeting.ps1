@@ -1,4 +1,6 @@
-﻿function Fetch-SplGreeting() {
+﻿[Reflection.Assembly]::LoadWithPartialName("Microsoft.VisualBasic") | Out-Null
+
+function Fetch-SplGreeting() {
 	$baseUri = "http://puroland.co.jp/chara_gre/"
 	$listUriTemplate = $baseUri + "chara_sentaku.asp?tchk={0}"
 	$detailUriTemplate = $baseUri + "chara_sche.asp?tchk={0}&C_KEY={1}"
@@ -55,15 +57,18 @@
 			throw "Cannot find name"
 		}
 		$body -split "</P>" |
-			% {if($_ -match "<FONT Size=-1>([\d:]+)-([\d:]+)<BR>(.+?)</FONT>"){$Matches}} |
+			% {if($_ -match "<FONT Size=-1>([\d:０-９：]+)[-－]([\d:０-９：]+)<BR>(.+?)</FONT>"){$Matches}} |
 			% {
 				New-Object PSObject -Property @{
 					CID = $id;
 					Name = $name;
-					Start = $date.Add([TimeSpan]::Parse($_[1]));
-					End = $date.Add([TimeSpan]::Parse($_[2]));
+					Start = $date.Add([TimeSpan]::Parse((to-hankaku($_[1]))));
+					End = $date.Add([TimeSpan]::Parse((to-hankaku($_[2]))));
 					Location = $_[3]}
 			}
+	}
+	function to-hankaku($str) {
+		[Microsoft.VisualBasic.Strings]::StrConv($str, [Microsoft.VisualBasic.VbStrConv]::Narrow)
 	}
 
 	Write-Progress "Fetching TCHK" "Fetching" -PercentComplete 0
@@ -93,7 +98,7 @@ function Invoke-SplGreetingMain() {
 		$readable += "-"
 		$readable += ([DateTime]$_.End).ToString("HH:mm")
 		$readable += " "
-		$readable += $_.Location -replace "\(.+\)",""
+		$readable += $_.Location -replace "[(（].+[)）]",""
 		$_ | Add-Member -MemberType NoteProperty "FriendlyTimeAndLocation" $readable -PassThru -Force
 	} | group FriendlyTimeAndLocation | sort Name | select Name,{@($_.Group|%{$_.Name}) -join ", "} | ft -AutoSize -Wrap
 }
