@@ -4,8 +4,7 @@ function Fetch-SplGreeting() {
 	$baseUri = "http://puroland.co.jp/chara_gre/"
 	$listUriTemplate = $baseUri + "chara_sentaku.asp?tchk={0}"
 	$detailUriTemplate = $baseUri + "chara_sche.asp?tchk={0}&C_KEY={1}"
-	# User-Agent には携帯っぽい文字列を含んでおく必要あり
-	$userAgent = "Mozilla/5.0 (PowerShell; https://github.com/ohtake/spl-greeting) (Android)"
+	$userAgent = "Mozilla/5.0 (PowerShell; https://github.com/ohtake/spl-greeting)"
 	$encoding = [Text.Encoding]::GetEncoding("Shift_JIS")
 	$maxTry = 5
 
