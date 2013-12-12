@@ -25,6 +25,10 @@ function Fetch-SplGreeting() {
 	}
 	function get-tchk() {
 		$body = wget($baseUri)
+		if($body -match '公開されておりません。P'){
+			Write-Verbose "Retrying with 'para' paramter" -Verbose
+			$body = wget($baseUri + ("?para={0:yyyyMMdd}" -f [TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([DateTime]::UtcNow, "Tokyo Standard Time")))
+		}
 		if($body -match 'name="TCHK" value="(\d+)"'){
 			[int]$Matches[1]
 		}else{
