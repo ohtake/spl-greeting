@@ -8,7 +8,7 @@ function Fetch-SplGreeting() {
 	$encoding = [Text.Encoding]::GetEncoding("Shift_JIS")
 	$maxTry = 5
 
-	function wget([String]$uri) {
+	function wget-splgreeting([String]$uri) {
 		$wc = New-Object Net.WebClient
 
 		for($try=1; $try -le $maxTry; $try++) {
@@ -24,10 +24,10 @@ function Fetch-SplGreeting() {
 		throw ("Failed to retrieve {0}" -f $uri)
 	}
 	function get-tchk() {
-		$body = wget($baseUri)
+		$body = wget-splgreeting($baseUri)
 		if($body -match '公開されておりません。P'){
 			Write-Verbose "Retrying with 'para' paramter" -Verbose
-			$body = wget($baseUri + ("?para={0:yyyyMMdd}" -f [TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([DateTime]::UtcNow, "Tokyo Standard Time")))
+			$body = wget-splgreeting($baseUri + ("?para={0:yyyyMMdd}" -f [TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([DateTime]::UtcNow, "Tokyo Standard Time")))
 		}
 		if($body -match 'name="TCHK" value="(\d+)"'){
 			[int]$Matches[1]
@@ -37,7 +37,7 @@ function Fetch-SplGreeting() {
 		}
 	}
 	function get-ids() {
-		$body = wget($listUriTemplate -f $tchk)
+		$body = wget-splgreeting($listUriTemplate -f $tchk)
 		$ids = @($body -split "<BR>" |% {if ($_ -match "C_KEY=(\d+)") {[int]$Matches[1]}})
 		if($ids.Count -eq 0) {
 			Write-Verbose $body -Verbose
@@ -46,7 +46,7 @@ function Fetch-SplGreeting() {
 		$ids
 	}
 	function get-items($id) {
-		$body = wget($detailUriTemplate -f $tchk,$id)
+		$body = wget-splgreeting($detailUriTemplate -f $tchk,$id)
 		if($body -match '(\d+)年(\d+)月(\d+)日') {
 			$date = New-Object DateTime @([int]$Matches[1],[int]$Matches[2],[int]$Matches[3])
 		}else{
