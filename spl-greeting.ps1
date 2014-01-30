@@ -4,7 +4,7 @@ function Get-SplLocalTime() {
 	[TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([DateTime]::UtcNow, "Tokyo Standard Time")
 }
 
-function Fetch-SplGreeting() {
+function Get-SplGreeting() {
 	$baseUri = "http://puroland.co.jp/chara_gre/"
 	$listUriTemplate = $baseUri + "chara_sentaku.asp?tchk={0}"
 	$detailUriTemplate = $baseUri + "chara_sche.asp?tchk={0}&C_KEY={1}"
@@ -98,7 +98,7 @@ function Fetch-SplGreeting() {
 }
 
 function Invoke-SplGreetingMain() {
-	$items = Fetch-SplGreeting
+	$items = Get-SplGreeting
 	$items | Export-Csv ("{0:yyyyMMdd}.csv" -f (Get-SplLocalTime)) -Encoding UTF8
 	$items |% {
 		$readable = ([DateTime]$_.Start).ToString("HH:mm")
@@ -110,7 +110,7 @@ function Invoke-SplGreetingMain() {
 	} | group FriendlyTimeAndLocation | sort Name | select Name,{@($_.Group|%{$_.Name}) -join ", "} | ft -AutoSize -Wrap
 }
 
-function Combine-SplGreetingCsv() {
+function Merge-SplGreetingCsv() {
 	ls -Filter *.csv |? { $_.Name -match "\d{8}\.csv" } |% {
 		New-Object PSObject -Property @{
 			Name = $_.Name
