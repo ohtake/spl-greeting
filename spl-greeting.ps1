@@ -1,5 +1,9 @@
 ﻿[Reflection.Assembly]::LoadWithPartialName("Microsoft.VisualBasic") | Out-Null
 
+function Get-SplLocalTime() {
+	[TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([DateTime]::UtcNow, "Tokyo Standard Time")
+}
+
 function Fetch-SplGreeting() {
 	$baseUri = "http://puroland.co.jp/chara_gre/"
 	$listUriTemplate = $baseUri + "chara_sentaku.asp?tchk={0}"
@@ -27,7 +31,7 @@ function Fetch-SplGreeting() {
 		$body = wget-splgreeting($baseUri)
 		if($body -match '公開されておりません。P'){
 			Write-Verbose "Retrying with 'para' paramter" -Verbose
-			$body = wget-splgreeting($baseUri + ("?para={0:yyyyMMdd}" -f [TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([DateTime]::UtcNow, "Tokyo Standard Time")))
+			$body = wget-splgreeting($baseUri + ("?para={0:yyyyMMdd}" -f (Get-SplLocalTime)))
 		}
 		if($body -match 'name="TCHK" value="(\d+)"'){
 			[int]$Matches[1]
@@ -95,7 +99,7 @@ function Fetch-SplGreeting() {
 
 function Invoke-SplGreetingMain() {
 	$items = Fetch-SplGreeting
-	$items | Export-Csv ("{0:yyyyMMdd}.csv" -f [TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([DateTime]::UtcNow, "Tokyo Standard Time")) -Encoding UTF8
+	$items | Export-Csv ("{0:yyyyMMdd}.csv" -f (Get-SplLocalTime)) -Encoding UTF8
 	$items |% {
 		$readable = ([DateTime]$_.Start).ToString("HH:mm")
 		$readable += "-"
