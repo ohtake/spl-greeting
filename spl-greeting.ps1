@@ -5,6 +5,7 @@ function Get-SplLocalTime() {
 }
 
 function Get-SplGreeting() {
+	$proxy = $null
 	$baseUri = "http://puroland.co.jp/chara_gre/"
 	$listUriTemplate = $baseUri + "chara_sentaku.asp?tchk={0}"
 	$detailUriTemplate = $baseUri + "chara_sche.asp?tchk={0}&C_KEY={1}"
@@ -14,12 +15,30 @@ function Get-SplGreeting() {
 
 	function wget-splgreeting([String]$uri) {
 		$wc = New-Object Net.WebClient
+		if ($proxy) {
+			$wc.Proxy = $proxy
+		}
 
 		for($try=1; $try -le $maxTry; $try++) {
 			try {
 				$wc.Encoding = $encoding
 				$wc.Headers.Add([Net.HttpRequestHeader]::UserAgent, $userAgent)
 				return $wc.DownloadString($uri)
+			} catch [System.Net.WebException] {
+				$ex = $_.Exception
+				switch ($ex.Response.StatusCode) {
+					ProxyAuthenticationRequired {
+						$proxy = New-Object System.Net.WebProxy (Read-Host -Prompt "Proxy address")
+						$proxy.Credentials = Get-Credential
+						$wc.Proxy = $proxy
+						break
+					}
+					default {
+						Write-Warning $ex
+						break
+					}
+				}
+				continue
 			} catch {
 				Write-Warning $_.Exception
 				continue
