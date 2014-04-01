@@ -144,3 +144,23 @@ function Merge-SplGreetingCsv() {
 		$items | Export-Csv "$ym.csv" -Encoding UTF8
 	}
 }
+
+function Import-SplCsv() {
+	param(
+		[parameter(Mandatory=$true, ValueFromPipeline=$true)]
+		[String[]]
+		$filenames
+	)
+	function to-zenkaku($str) {
+		[Microsoft.VisualBasic.Strings]::StrConv($str, [Microsoft.VisualBasic.VbStrConv]::Wide)
+	}
+	$raw = Import-Csv $filenames
+	$raw |% {
+		$_.CID = [int]$_.CID
+		$_.Name = to-zenkaku($_.Name)
+		$_.Location = to-zenkaku($_.Location)
+		$_.Start = [DateTime]$_.Start
+		$_.End = [DateTime]$_.End
+		$_
+	}
+}
