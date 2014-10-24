@@ -6,7 +6,7 @@ function Get-SplLocalTime() {
 
 function Get-SplGreeting() {
 	$proxy = $null
-	$baseUri = "http://puroland.co.jp/chara_gre/"
+	$baseUri = "http://puroland.co.jp/chara_gre/mobile/"
 	$listUriTemplate = $baseUri + "chara_sentaku.asp?tchk={0}"
 	$detailUriTemplate = $baseUri + "chara_sche.asp?tchk={0}&C_KEY={1}"
 	$userAgent = "Mozilla/5.0 (PowerShell; https://github.com/ohtake/spl-greeting)"
