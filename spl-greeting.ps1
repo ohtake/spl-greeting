@@ -118,7 +118,7 @@ function Get-SplGreeting() {
 
 function Invoke-SplGreetingMain() {
 	$items = Get-SplGreeting
-	$items | Export-Csv ("{0:yyyyMMdd}.csv" -f (Get-SplLocalTime)) -Encoding UTF8
+	$items | Export-Csv ("{0:yyyyMMdd}.csv" -f (Get-SplLocalTime)) -Encoding UTF8 -NoTypeInformation
 	$items |% {
 		$readable = ([DateTime]$_.Start).ToString("HH:mm")
 		$readable += "-"
@@ -141,7 +141,7 @@ function Merge-SplGreetingCsv() {
 		$_.Group |% {
 			$items += Import-Csv $_.Name
 		}
-		$items | Export-Csv "$ym.csv" -Encoding UTF8
+		$items | Export-Csv "$ym.csv" -Encoding UTF8 -NoTypeInformation
 	}
 }
 
