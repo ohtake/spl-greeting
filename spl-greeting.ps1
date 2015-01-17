@@ -71,11 +71,18 @@ function Get-SplGreeting() {
 	}
 	function get-tomorrow() {
 		$body = wget-splgreeting($tomorrowUriTemplate -f $tchk)
-		$body -split "\n" |
+		$names = $body -split "\n" |
 			? {$_ -match "<tr align=center>" } |
 			% { $_ -split "</?td>"} |
 			? { $_ -ne "" } |
 			? { $_ -NotMatch "<" }
+		if ($body -match '<div class="newsTop3">(\d+)年(\d+)月(\d+)日は') {
+			$date = New-Object DateTime @([int]$Matches[1],[int]$Matches[2],[int]$Matches[3])
+		} else {
+			Write-Verbose $body -Verbose
+			throw "Cannot find date of next day"
+		}
+		$names |% { New-Object PSObject -Property @{Name=$_; Date = $date} }
 	}
 	function get-items($id) {
 		$body = wget-splgreeting($detailUriTemplate -f $tchk,$id)
@@ -129,6 +136,7 @@ function Get-SplGreeting() {
 function Invoke-SplGreetingMain() {
 	$result = Get-SplGreeting
 	$result["today"] | Export-Csv ("{0:yyyyMMdd}.csv" -f (Get-SplLocalTime)) -Encoding UTF8 -NoTypeInformation
+	$result["tomorrow"] | Export-Csv ("{0:yyyyMMdd}_next.csv" -f $result["tomorrow"][0].Date) -Encoding UTF8 -NoTypeInformation
 	$result["today"] |% {
 		$readable = ([DateTime]$_.Start).ToString("HH:mm")
 		$readable += "-"
@@ -137,23 +145,27 @@ function Invoke-SplGreetingMain() {
 		$readable += $_.Location -replace "[(（].+[)）]",""
 		$_ | Add-Member -MemberType NoteProperty "FriendlyTimeAndLocation" $readable -PassThru -Force
 	} | group FriendlyTimeAndLocation | sort Name | select Name,{@($_.Group|%{$_.Name}) -join ", "} | ft -AutoSize -Wrap
-	diff ($result["today"] | select Name -Unique |% {$_.Name}) $result["tomorrow"] -IncludeEqual | ft -AutoSize -Wrap
+	diff ($result["today"] | select Name -Unique |% {$_.Name}) ($result["tomorrow"] |% {$_.Name}) -IncludeEqual | ft -AutoSize -Wrap
 }
 
 function Merge-SplGreetingCsv() {
-	ls -Filter *.csv |? { $_.Name -match "\d{8}\.csv" } |% {
-		New-Object PSObject -Property @{
-			Name = $_.Name
-			YYYYMM = $_.Name.Substring(0,6)
+	function merge($suffix="") {
+		ls -Filter *.csv |? { $_.Name -match "\d{8}$suffix\.csv" } |% {
+			New-Object PSObject -Property @{
+				Name = $_.Name
+				YYYYMM = $_.Name.Substring(0,6)
+			}
+		} | group YYYYMM |% {
+			$ym = $_.Name
+			$items = @()
+			$_.Group |% {
+				$items += Import-Csv $_.Name
+			}
+			$items | Export-Csv "$ym$suffix.csv" -Encoding UTF8 -NoTypeInformation
 		}
-	} | group YYYYMM |% {
-		$ym = $_.Name
-		$items = @()
-		$_.Group |% {
-			$items += Import-Csv $_.Name
-		}
-		$items | Export-Csv "$ym.csv" -Encoding UTF8 -NoTypeInformation
 	}
+	merge
+	merge "_next"
 }
 
 function Import-SplCsv() {
