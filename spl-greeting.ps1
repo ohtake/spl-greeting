@@ -9,6 +9,7 @@ function Get-SplGreeting() {
 	$baseUri = "http://puroland.co.jp/chara_gre/"
 	$listUriTemplate = $baseUri + "chara_sentaku.asp?tchk={0}"
 	$detailUriTemplate = $baseUri + "chara_sche.asp?tchk={0}&C_KEY={1}"
+	$tomorrowUriTemplate = $baseUri + "chara_sentaku_nextday.asp?tchk={0}"
 	$userAgent = "Mozilla/5.0 (PowerShell; https://github.com/ohtake/spl-greeting)"
 	$encoding = [Text.Encoding]::GetEncoding("Shift_JIS")
 	$maxTry = 5
@@ -68,6 +69,14 @@ function Get-SplGreeting() {
 		}
 		$ids
 	}
+	function get-tomorrow() {
+		$body = wget-splgreeting($tomorrowUriTemplate -f $tchk)
+		$body -split "\n" |
+			? {$_ -match "<tr align=center>" } |
+			% { $_ -split "</?td>"} |
+			? { $_ -ne "" } |
+			? { $_ -NotMatch "<" }
+	}
 	function get-items($id) {
 		$body = wget-splgreeting($detailUriTemplate -f $tchk,$id)
 		if($body -match '(\d+)年(\d+)月(\d+)日') {
@@ -113,6 +122,8 @@ function Get-SplGreeting() {
 		} -End {
 			Write-Progress "Fetching schedules" ("# of items: {0}" -f $_.Count) -PercentComplete 100
 		}
+	$tomorrow = get-tomorrow
+	$tomorrow |% { Write-Verbose $_ -Verbose }
 	return $items
 }
 
