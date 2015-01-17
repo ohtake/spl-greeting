@@ -123,14 +123,13 @@ function Get-SplGreeting() {
 			Write-Progress "Fetching schedules" ("# of items: {0}" -f $_.Count) -PercentComplete 100
 		}
 	$tomorrow = get-tomorrow
-	$tomorrow |% { Write-Verbose $_ -Verbose }
-	return $items
+	return @{today = $items; tomorrow = $tomorrow }
 }
 
 function Invoke-SplGreetingMain() {
-	$items = Get-SplGreeting
-	$items | Export-Csv ("{0:yyyyMMdd}.csv" -f (Get-SplLocalTime)) -Encoding UTF8 -NoTypeInformation
-	$items |% {
+	$result = Get-SplGreeting
+	$result["today"] | Export-Csv ("{0:yyyyMMdd}.csv" -f (Get-SplLocalTime)) -Encoding UTF8 -NoTypeInformation
+	$result["today"] |% {
 		$readable = ([DateTime]$_.Start).ToString("HH:mm")
 		$readable += "-"
 		$readable += ([DateTime]$_.End).ToString("HH:mm")
@@ -138,6 +137,7 @@ function Invoke-SplGreetingMain() {
 		$readable += $_.Location -replace "[(（].+[)）]",""
 		$_ | Add-Member -MemberType NoteProperty "FriendlyTimeAndLocation" $readable -PassThru -Force
 	} | group FriendlyTimeAndLocation | sort Name | select Name,{@($_.Group|%{$_.Name}) -join ", "} | ft -AutoSize -Wrap
+	diff ($result["today"] | select Name -Unique |% {$_.Name}) $result["tomorrow"] -IncludeEqual | ft -AutoSize -Wrap
 }
 
 function Merge-SplGreetingCsv() {
