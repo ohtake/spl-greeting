@@ -6,9 +6,9 @@ function Get-SplLocalTime() {
 
 function Get-SplGreeting() {
 	$proxy = $null
-	$baseUri = "http://puroland.co.jp/chara_gre/mobile/"
-	$listUriTemplate = $baseUri + "chara_sentaku.asp?tchk={0}"
-	$detailUriTemplate = $baseUri + "chara_sche.asp?tchk={0}&C_KEY={1}"
+	$baseUri = "http://puroland.co.jp/chara_gre/"
+	$listUriTemplate = $baseUri + "mobile/chara_sentaku.asp?tchk={0}"
+	$detailUriTemplate = $baseUri + "mobile/chara_sche.asp?tchk={0}&C_KEY={1}"
 	$tomorrowUriTemplate = $baseUri + "chara_sentaku_nextday.asp?tchk={0}"
 	$userAgent = "Mozilla/5.0 (PowerShell; https://github.com/ohtake/spl-greeting)"
 	$encoding = [Text.Encoding]::GetEncoding("Shift_JIS")
