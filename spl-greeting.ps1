@@ -7,8 +7,8 @@ function Get-SplLocalTime() {
 function Get-SplGreeting() {
 	$proxy = $null
 	$baseUri = "http://puroland.co.jp/chara_gre/"
-	$listUriTemplate = $baseUri + "chara_sentaku.asp?tchk={0}"
-	$detailUriTemplate = $baseUri + "chara_sche.asp?tchk={0}&C_KEY={1}"
+	$listUriTemplate = $baseUri + "mobile/chara_sentaku.asp?tchk={0}"
+	$detailUriTemplate = $baseUri + "mobile/chara_sche.asp?tchk={0}&C_KEY={1}"
 	$tomorrowUriTemplate = $baseUri + "chara_sentaku_nextday.asp?tchk={0}"
 	$userAgent = "Mozilla/5.0 (PowerShell; https://github.com/ohtake/spl-greeting)"
 	$encoding = [Text.Encoding]::GetEncoding("Shift_JIS")
@@ -62,7 +62,7 @@ function Get-SplGreeting() {
 	}
 	function get-ids() {
 		$body = wget-splgreeting($listUriTemplate -f $tchk)
-		$ids = @($body -split "<form " |% {if ($_ -match "name=C_KEY value=(\d+)") {[int]$Matches[1]}})
+		$ids = @($body -split "<BR>" |% {if ($_ -match "C_KEY=(\d+)") {[int]$Matches[1]}})
 		if($ids.Count -eq 0) {
 			Write-Verbose $body -Verbose
 			throw "Cannot find any CIDs"
@@ -92,14 +92,14 @@ function Get-SplGreeting() {
 			Write-Verbose $body -Verbose
 			throw "Cannot find date"
 		}
-		if($body -match '<div id="date3">(.+)</div>'){
+		if($body -match "<P align=center><FONT size=-1>(.+)</FONT></P>"){
 			$name = $Matches[1]
 		}else{
 			Write-Verbose $body -Verbose
 			throw "Cannot find name"
 		}
-		$body -split "<div id=date>" |
-			% {if($_ -match "^([\d:０-９：]+)[-－]([\d:０-９：]+)<BR>(.+?)</FONT>"){$Matches}} |
+		$body -split "</P>" |
+			% {if($_ -match "<FONT Size=-1>([\d:０-９：]+)[-－]([\d:０-９：]+)<BR>(.+?)</FONT>"){$Matches}} |
 			% {
 				New-Object PSObject -Property @{
 					CID = $id;
