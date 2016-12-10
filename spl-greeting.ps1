@@ -7,6 +7,7 @@ function Get-SplLocalTime() {
 function Get-SplGreeting() {
 	$proxy = $null
 	$baseUri = "http://puroland.co.jp/chara_gre/"
+	$homeUri = $baseUri + "mobile/"
 	$listUriTemplate = $baseUri + "mobile/chara_sentaku.asp?tchk={0}"
 	$detailUriTemplate = $baseUri + "mobile/chara_sche.asp?tchk={0}&C_KEY={1}"
 	$tomorrowUriTemplate = $baseUri + "chara_sentaku_nextday.asp?tchk={0}"
@@ -48,10 +49,10 @@ function Get-SplGreeting() {
 		throw ("Failed to retrieve {0}" -f $uri)
 	}
 	function get-tchk() {
-		$body = wget-splgreeting($baseUri)
+		$body = wget-splgreeting($homeUri)
 		if($body -match '公開されておりません。P'){
 			Write-Verbose "Retrying with 'para' paramter" -Verbose
-			$body = wget-splgreeting($baseUri + ("?para={0:yyyyMMdd}" -f (Get-SplLocalTime)))
+			$body = wget-splgreeting($homeUri + ("?para={0:yyyyMMdd}" -f (Get-SplLocalTime)))
 		}
 		if($body -match 'name="TCHK" value="(\d+)"'){
 			[int]$Matches[1]
