@@ -1,4 +1,5 @@
 ﻿[Reflection.Assembly]::LoadWithPartialName("Microsoft.VisualBasic") | Out-Null
+$LCID_JAJP = (New-Object -TypeName System.Globalization.CultureInfo -ArgumentList @("ja-jp", $true)).LCID
 
 function Get-SplLocalTime() {
 	[TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([DateTime]::UtcNow, "Tokyo Standard Time")
@@ -111,7 +112,7 @@ function Get-SplGreeting() {
 			}
 	}
 	function to-hankaku($str) {
-		[Microsoft.VisualBasic.Strings]::StrConv($str, [Microsoft.VisualBasic.VbStrConv]::Narrow)
+		[Microsoft.VisualBasic.Strings]::StrConv($str, [Microsoft.VisualBasic.VbStrConv]::Narrow, $LCID_JAJP)
 	}
 
 	Write-Progress "Fetching TCHK" "Fetching" -PercentComplete 0
@@ -176,7 +177,7 @@ function Import-SplCsv() {
 		$filenames
 	)
 	function to-zenkaku($str) {
-		[Microsoft.VisualBasic.Strings]::StrConv($str, [Microsoft.VisualBasic.VbStrConv]::Wide)
+		[Microsoft.VisualBasic.Strings]::StrConv($str, [Microsoft.VisualBasic.VbStrConv]::Wide, $LCID_JAJP)
 	}
 	$raw = Import-Csv $filenames
 	$raw |% {
