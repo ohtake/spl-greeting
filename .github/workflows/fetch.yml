@@ -1,0 +1,23 @@
+name: Fetch Schedule
+
+on:
+  schedule:
+  - cron: "10 1 * * *" # 10:10am in Japan
+  - cron: "10 13 * * *" # 10:10pm in Japan
+
+jobs:
+  fetch:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        ref: master
+    - name: Invoke-SplGreetingMain
+      shell: powershell # Requires old PowerShell because of VisualBasic assembly
+      run: |
+        . .\spl-greeting.ps1
+        Invoke-SplGreetingMain
+    - uses: actions/upload-artifact@v1.0.0
+      with:
+        name: schedule
+        path: schedule

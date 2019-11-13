@@ -1,0 +1,33 @@
+name: Merge Schedule
+
+on:
+  schedule:
+  - cron: "30 0 1 * *" # every first day of month, 9:30am in Japan
+  - cron: "*/5 * * * *" # For test
+
+jobs:
+  merge:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        ref: master
+    - uses: actions/download-artifact@v1.0.0
+      with:
+        name: schedule
+    - name: TEST list artifacts
+      run: |
+        ls -R
+    - name: Merge-SplGreetingCsv
+      shell: powershell
+      run: |
+        . .\spl-greeting.ps1
+        Merge-SplGreetingCsv
+    - name: Move artifacts
+      run: |
+        mkdir -p schedule-m
+        mv schedule/??????.csv schedule/??????_next.csv schedule/
+    - uses: actions/upload-artifact@v1.0.0
+      with:
+        name: schedule-m
+        path: schedule-m
