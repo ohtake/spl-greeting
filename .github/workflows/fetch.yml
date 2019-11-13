@@ -1,4 +1,4 @@
-name: Fetch Schedule
+name: Fetch and push schedule
 
 on:
   schedule:
@@ -6,18 +6,30 @@ on:
   - cron: "10 13 * * *" # 10:10pm in Japan
 
 jobs:
-  fetch:
+  fetch_push:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v1
       with:
-        ref: master
+        ref: test-actions
     - name: Invoke-SplGreetingMain
       shell: powershell # Requires old PowerShell because of VisualBasic assembly
       run: |
         . .\spl-greeting.ps1
         Invoke-SplGreetingMain
-    - uses: actions/upload-artifact@v1.0.0
-      with:
-        name: schedule
-        path: schedule
+    - name: git commit and push
+      shell: powershell
+      run: |
+        git add schedule/*.csv
+        git config --local user.email "ohtake@users.noreply.github.com"
+        git config --local user.name "GitHub Action"
+        git commit -m "actions at $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
+        if ($LASTEXITCODE -eq 1) {
+          # Nothing to commit?
+          exit 0
+        }
+        # Push manually because ad-m/github-push-action is not supported on Windows runners
+        # Redirecting stderr because of https://stackoverflow.com/a/16334189
+        git push "https://${ENV:GITHUB_ACTOR}:${ENV:TOKEN}@github.com/${ENV:GITHUB_REPOSITORY}.git" test-actions 2>&1
+      env:
+        TOKEN: ${{ secrets.GITHUB_TOKEN }}
