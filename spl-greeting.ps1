@@ -1,5 +1,6 @@
 ﻿[Reflection.Assembly]::LoadWithPartialName("Microsoft.VisualBasic") | Out-Null
 $LCID_JAJP = (New-Object -TypeName System.Globalization.CultureInfo -ArgumentList @("ja-jp", $true)).LCID
+$outdir = "schedule"
 
 function Get-SplLocalTime() {
 	[TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([DateTime]::UtcNow, "Tokyo Standard Time")
@@ -137,8 +138,9 @@ function Get-SplGreeting() {
 
 function Invoke-SplGreetingMain() {
 	$result = Get-SplGreeting
-	$result["today"] | Export-Csv ("{0:yyyyMMdd}.csv" -f (Get-SplLocalTime)) -Encoding UTF8 -NoTypeInformation
-	$result["tomorrow"] | Export-Csv ("{0:yyyyMMdd}_next.csv" -f $result["tomorrow"][0].Date) -Encoding UTF8 -NoTypeInformation
+	mkdir -p $outdir
+	$result["today"] | Export-Csv (Join-Path $outdir ("{0:yyyyMMdd}.csv" -f (Get-SplLocalTime))) -Encoding UTF8 -NoTypeInformation
+	$result["tomorrow"] | Export-Csv (Join-Path $outdir ("{0:yyyyMMdd}_next.csv" -f $result["tomorrow"][0].Date)) -Encoding UTF8 -NoTypeInformation
 	$result["today"] |% {
 		$readable = ([DateTime]$_.Start).ToString("HH:mm")
 		$readable += "-"
@@ -152,7 +154,7 @@ function Invoke-SplGreetingMain() {
 
 function Merge-SplGreetingCsv() {
 	function merge($suffix="") {
-		ls -Filter *.csv |? { $_.Name -match "\d{8}$suffix\.csv" } |% {
+		ls -Filter (Join-Path $outdir "*.csv") |? { $_.Name -match "\d{8}$suffix\.csv" } |% {
 			New-Object PSObject -Property @{
 				Name = $_.Name
 				YYYYMM = $_.Name.Substring(0,6)
@@ -161,9 +163,9 @@ function Merge-SplGreetingCsv() {
 			$ym = $_.Name
 			$items = @()
 			$_.Group |% {
-				$items += Import-Csv $_.Name
+				$items += Import-Csv (Join-Path $outdir $_.Name)
 			}
-			$items | Export-Csv "$ym$suffix.csv" -Encoding UTF8 -NoTypeInformation
+			$items | Export-Csv (Join-Path $outdir "$ym$suffix.csv") -Encoding UTF8 -NoTypeInformation
 		}
 	}
 	merge
