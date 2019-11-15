@@ -138,7 +138,7 @@ function Get-SplGreeting() {
 
 function Invoke-SplGreetingMain() {
 	$result = Get-SplGreeting
-	mkdir -p $outdir
+	mkdir $outdir -ErrorAction SilentlyContinue
 	$result["today"] | Export-Csv (Join-Path $outdir ("{0:yyyyMMdd}.csv" -f (Get-SplLocalTime))) -Encoding UTF8 -NoTypeInformation
 	$result["tomorrow"] | Export-Csv (Join-Path $outdir ("{0:yyyyMMdd}_next.csv" -f $result["tomorrow"][0].Date)) -Encoding UTF8 -NoTypeInformation
 	$result["today"] |% {
