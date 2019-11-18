@@ -29,7 +29,16 @@ jobs:
           exit 0
         }
         # Push manually because ad-m/github-push-action is not supported on Windows runners
-        # Redirecting stderr because of https://stackoverflow.com/a/16334189
-        git push "https://${ENV:GITHUB_ACTOR}:${ENV:TOKEN}@github.com/${ENV:GITHUB_REPOSITORY}.git" test-actions 2>&1
+        # Workaround for stderr and ErrorActionPreference=Stop https://stackoverflow.com/a/31559585
+        $old_error_action_preference = $ErrorActionPreference
+        try {
+          $ErrorActionPreference = "Continue"
+          git push "https://${ENV:GITHUB_ACTOR}:${ENV:TOKEN}@github.com/${ENV:GITHUB_REPOSITORY}.git" test-actions 2>&1
+          if ($LASTEXITCODE -ne 0) {
+            exit $LASTEXITCODE
+          }
+        } finally {
+          $ErrorActionPreference = $old_error_action_preference
+        }
       env:
         TOKEN: ${{ secrets.GITHUB_TOKEN }}
