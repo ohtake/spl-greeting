@@ -1,0 +1,44 @@
+name: Fetch and push schedule
+
+on:
+  schedule:
+  - cron: "10 1 * * *" # 10:10am in Japan
+  - cron: "10 13 * * *" # 10:10pm in Japan
+
+jobs:
+  fetch_push:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        ref: test-actions
+    - name: Invoke-SplGreetingMain
+      shell: powershell # Requires old PowerShell because of VisualBasic assembly
+      run: |
+        . .\spl-greeting.ps1
+        Invoke-SplGreetingMain
+    - name: git commit and push
+      shell: powershell
+      run: |
+        git add schedule/*.csv
+        git config --local user.email "ohtake@users.noreply.github.com"
+        git config --local user.name "GitHub Action"
+        git commit -m "actions at $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
+        if ($LASTEXITCODE -eq 1) {
+          # Nothing to commit?
+          exit 0
+        }
+        # Push manually because ad-m/github-push-action is not supported on Windows runners
+        # Workaround for stderr and ErrorActionPreference=Stop https://stackoverflow.com/a/31559585
+        $old_error_action_preference = $ErrorActionPreference
+        try {
+          $ErrorActionPreference = "Continue"
+          git push "https://${ENV:GITHUB_ACTOR}:${ENV:TOKEN}@github.com/${ENV:GITHUB_REPOSITORY}.git" test-actions 2>&1
+          if ($LASTEXITCODE -ne 0) {
+            exit $LASTEXITCODE
+          }
+        } finally {
+          $ErrorActionPreference = $old_error_action_preference
+        }
+      env:
+        TOKEN: ${{ secrets.GITHUB_TOKEN }}
