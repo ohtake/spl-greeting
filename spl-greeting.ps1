@@ -191,3 +191,42 @@ function Import-SplCsv() {
 		$_
 	}
 }
+
+function Format-SplCsvDateTime() {
+	$temp_dir = "temp_format"
+	mkdir $temp_dir -ErrorAction SilentlyContinue
+	ls -Filter (Join-Path $outdir "*.csv") |% {
+		$changed = $false
+		$name = $_
+		$items = Import-Csv (Join-Path $outdir $name)
+		$items |% {
+			# Code duplitaes? It is required for faster execution.
+			if ($_.Start) {
+				$parsed = [DateTime]$_.Start
+				if ($_.Start -ne [string]$parsed) {
+					$_.Start = $parsed
+					$changed = $true
+				}
+			}
+			if ($_.End) {
+				$parsed = [DateTime]$_.End
+				if ($_.End -ne [string]$parsed) {
+					$_.End = $parsed
+					$changed = $true
+				}
+			}
+			if ($_.Date) {
+				$parsed = [DateTime]$_.Date
+				if ($_.Date -ne [string]$parsed) {
+					$_.Date = $parsed
+					$changed = $true
+				}
+			}
+		}
+		if ($changed) {
+			$items | Export-Csv (Join-Path $temp_dir $name) -Encoding UTF8 -NoTypeInformation
+		}
+	}
+	mv -Force $temp_dir/*.csv $outdir/
+	rm -Recurse $temp_dir
+}
