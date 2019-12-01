@@ -21,8 +21,8 @@ jobs:
       shell: powershell
       run: |
         git add schedule/*.csv
-        git config --local user.email "ohtake@users.noreply.github.com"
-        git config --local user.name "GitHub Action"
+        git config --local user.email "${ENV:GITHUB_ACTOR}@users.noreply.github.com"
+        git config --local user.name "GitHub Actions"
         git commit -m "actions at $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
         if ($LASTEXITCODE -eq 1) {
           # Nothing to commit?
