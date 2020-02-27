@@ -8,12 +8,11 @@ function Get-SplLocalTime() {
 
 function Get-SplGreeting() {
 	$proxy = $null
-	$baseUri = "http://puroland.co.jp/chara_gre/"
+	$baseUri = "http://www.puroland.co.jp/chara_gre/"
 	$homeUri = $baseUri + "mobile/"
 	$listUriTemplate = $baseUri + "mobile/chara_sentaku.asp?tchk={0}"
 	$detailUriTemplate = $baseUri + "mobile/chara_sche.asp?tchk={0}&C_KEY={1}"
 	$tomorrowUriTemplate = $baseUri + "chara_sentaku_nextday.asp?tchk={0}"
-	$userAgent = "Mozilla/5.0 (PowerShell; https://github.com/ohtake/spl-greeting)"
 	$encoding = [Text.Encoding]::GetEncoding("Shift_JIS")
 	$maxTry = 5
 
@@ -26,7 +25,6 @@ function Get-SplGreeting() {
 		for($try=1; $try -le $maxTry; $try++) {
 			try {
 				$wc.Encoding = $encoding
-				$wc.Headers.Add([Net.HttpRequestHeader]::UserAgent, $userAgent)
 				return $wc.DownloadString($uri)
 			} catch [System.Net.WebException] {
 				$ex = $_.Exception
@@ -132,7 +130,7 @@ function Get-SplGreeting() {
 		} -End {
 			Write-Progress "Fetching schedules" ("# of items: {0}" -f $_.Count) -PercentComplete 100
 		}
-	$tomorrow = get-tomorrow
+	# $tomorrow = get-tomorrow
 	return @{today = $items; tomorrow = $tomorrow }
 }
 
@@ -140,7 +138,7 @@ function Invoke-SplGreetingMain() {
 	$result = Get-SplGreeting
 	mkdir $outdir -ErrorAction SilentlyContinue
 	$result["today"] | Export-Csv (Join-Path $outdir ("{0:yyyyMMdd}.csv" -f (Get-SplLocalTime))) -Encoding UTF8 -NoTypeInformation
-	$result["tomorrow"] | Export-Csv (Join-Path $outdir ("{0:yyyyMMdd}_next.csv" -f $result["tomorrow"][0].Date)) -Encoding UTF8 -NoTypeInformation
+	# $result["tomorrow"] | Export-Csv (Join-Path $outdir ("{0:yyyyMMdd}_next.csv" -f $result["tomorrow"][0].Date)) -Encoding UTF8 -NoTypeInformation
 	$result["today"] |% {
 		$readable = ([DateTime]$_.Start).ToString("HH:mm")
 		$readable += "-"
@@ -149,7 +147,7 @@ function Invoke-SplGreetingMain() {
 		$readable += $_.Location -replace "[(（].+[)）]",""
 		$_ | Add-Member -MemberType NoteProperty "FriendlyTimeAndLocation" $readable -PassThru -Force
 	} | group FriendlyTimeAndLocation | sort Name | select Name,{@($_.Group|%{$_.Name}) -join ", "} | ft -AutoSize -Wrap
-	diff ($result["today"] | select Name -Unique |% {$_.Name}) ($result["tomorrow"] |% {$_.Name}) -IncludeEqual | ft -AutoSize -Wrap
+	# diff ($result["today"] | select Name -Unique |% {$_.Name}) ($result["tomorrow"] |% {$_.Name}) -IncludeEqual | ft -AutoSize -Wrap
 }
 
 function Merge-SplGreetingCsv() {
