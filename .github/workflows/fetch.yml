@@ -9,7 +9,7 @@ jobs:
   fetch_push:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3.0.2
       with:
         ref: actions
     - name: Invoke-SplGreetingMain
