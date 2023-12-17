@@ -17,14 +17,14 @@ jobs:
       run: |
         . .\spl-schedule2.ps1
         Invoke-SplSchelduleMain
-        . .\spl-greeting.ps1
-        Invoke-SplGreetingMain
+        # . .\spl-greeting.ps1
+        # Invoke-SplGreetingMain
     - name: git commit and push
       shell: powershell
       run: |
         git add schedule2m/*.json
         git add schedule2d/*.json
-        git add schedule/*.csv
+        # git add schedule/*.csv
         git config --local user.email "${ENV:GITHUB_ACTOR}@users.noreply.github.com"
         git config --local user.name "GitHub Actions"
         git commit -m "actions at $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
